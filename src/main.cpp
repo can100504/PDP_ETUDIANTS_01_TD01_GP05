@@ -11,17 +11,12 @@
 #include <DHT.h>
 #include <DHT_U.h>
 
-#define DHTPIN 13     // Digital pin connected to the DHT sensor 
-// Feather HUZZAH ESP8266 note: use pins 3, 4, 5, 12, 13 or 14 --
-// Pin 15 can work but DHT must be disconnected during program upload.
+#define DHTPIN 13 
+#define DHTTYPE    DHT11   
 
-// Uncomment the type of sensor in use:
-#define DHTTYPE    DHT11     // DHT 11
-//#define DHTTYPE    DHT22     // DHT 22 (AM2302)
-//#define DHTTYPE    DHT21     // DHT 21 (AM2301)
-
-// See guide for details on sensor wiring and usage:
-//   https://learn.adafruit.com/dht/overview
+#define uS_TO_S_FACTOR 1000000  
+#define TIME_TO_SLEEP 5    
+RTC_DATA_ATTR int bootCount = 0;    
 
 DHT_Unified dht(DHTPIN, DHTTYPE);
 
@@ -35,23 +30,27 @@ void setup() {
   // Print temperature sensor details.
   sensor_t sensor;
   dht.temperature().getSensor(&sensor);
-  // Set delay between sensor readings based on sensor details.
-  delayMS = sensor.min_delay / 1000;
+
+  sensors_event_t event;
+  dht.temperature().getEvent(&event);
+
+  if(bootCount == 0) 
+  {  
+    bootCount = bootCount+1;  
+  }else  
+  {  
+     if (isnan(event.temperature)) {
+    Serial.println(F("Error reading temperature!"));
+    }
+    else {
+      Serial.print(F("Temperature: "));
+      Serial.print(event.temperature);
+      Serial.println(F("°C"));
+    }
+  }        
+  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);  
+  esp_deep_sleep_start(); 
 }
 
 void loop() {
-  // Delay between measurements.
-  delay(delayMS);
-  // Get temperature event and print its value.
-  sensors_event_t event;
-  dht.temperature().getEvent(&event);
-  if (isnan(event.temperature)) {
-    Serial.println(F("Error reading temperature!"));
-  }
-  else {
-    Serial.print(F("Temperature: "));
-    Serial.print(event.temperature);
-    Serial.println(F("°C"));
-  }
-  
 }
