@@ -7,6 +7,7 @@
 void setup() {
   // put your setup code here, to run once:
   pinMode(LED, OUTPUT);
+  Serial.begin(9600);
 }
 
 void loop() {
@@ -14,4 +15,5 @@ void loop() {
   delay(200);
   digitalWrite(LED, LOW);
   delay(200);
+ 
 }
